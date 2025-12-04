@@ -45,7 +45,7 @@ impl Document {
         Document { rotations }
     }
 
-    pub fn solve(self) -> usize {
+    pub fn part_1(self) -> usize {
         let cycle_size = 100;
         let mut total_zeros = 0;
         let mut position: i32 = 50;
@@ -79,6 +79,22 @@ impl Document {
         }
         total_zeros
     }
+    
+    pub fn part_2(self) -> i32 {
+        let cycle_size = 100;
+        let mut total_zeros = 0;
+        let mut position: i32 = 50;
+        let mut new_position: i32;
+        for rotation in self.rotations {
+            let step = rotation.steps * match rotation.direction {
+                Direction::Left => -1,
+                Direction::Right => 1,
+            };
+            new_position = position + step;
+            position = new_position;
+        }
+        total_zeros
+    }
 }
 
 #[cfg(test)]
@@ -86,9 +102,23 @@ mod tests {
     use super::*;
     
     #[test]
-    fn part1() {
+    fn part_1_example() {
         let document = Document::new("src/days/inputs/01/p1_test.txt");
-        let answer = document.solve();
+        let answer = document.part_1();
         assert_eq!(3, answer)
+    }
+
+    #[test]
+    fn part_1() {
+        let document = Document::new("src/days/inputs/01/p1.txt");
+        let answer = document.part_1();
+        assert_eq!(1018, answer)
+    }
+
+    #[test]
+    fn part_2_example() {
+        let document = Document::new("src/days/inputs/01/p1_test.txt");
+        let answer = document.part_2();
+        assert_eq!(6, answer)
     }
 }
