@@ -86,33 +86,18 @@ impl Document {
         let cycle_size = 100;
         let mut total_zeros = 0;
         let mut position: i32 = 50;
-        let mut new_position: i32;
-        let mut step: i32;
-        let mut high: i32;
-        let mut low: i32;
+        let mut direction: i32;
         for rotation in self.rotations {
-            step = rotation.steps * match rotation.direction {
+            direction = match rotation.direction {
                 Direction::Left => -1,
                 Direction::Right => 1,
             };
-            new_position = position + step;
-            high = floor_n(position.max(new_position), cycle_size);
-            low = ceil_n(position.min(new_position), cycle_size);
-            // println!("-----------------------------");
-            // dbg!(total_zeros);
-            // dbg!(step);
-            // dbg!(position);
-            // dbg!(new_position);
-            // dbg!(low);
-            // dbg!(high);
-            if high < low {
-                position = new_position;
-                // println!("high < low");
-                continue;
-            };
-            // dbg!((high - low) / cycle_size + 1 - (if position == 0 {1} else {0}));
-            total_zeros += (high - low) / cycle_size + 1 - (if position % cycle_size == 0 {1} else {0});
-            position = new_position;
+            for _ in 0..rotation.steps.abs() {
+                position = position + direction;
+                if position % cycle_size == 0 {
+                    total_zeros += 1;
+                }
+            }
         }
         total_zeros
     }
@@ -141,5 +126,12 @@ mod tests {
         let document = Document::new("src/days/inputs/01/p1_test.txt");
         let answer = document.part_2();
         assert_eq!(6, answer)
+    }
+
+    #[test]
+    fn part_2() {
+        let document = Document::new("src/days/inputs/01/p1.txt");
+        let answer = document.part_2();
+        assert_eq!(5815, answer)
     }
 }
