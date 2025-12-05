@@ -1,4 +1,4 @@
-fn floor_n(x: i32, n: i32) -> i32 {
+pub fn floor_n(x: i32, n: i32) -> i32 {
     if x >= 0 {
         x - x % n
     } else {
@@ -6,7 +6,7 @@ fn floor_n(x: i32, n: i32) -> i32 {
     }
 }
 
-fn ceil_n(x: i32, n: i32) -> i32 {
+pub fn ceil_n(x: i32, n: i32) -> i32 {
     if x % n == 0 {
         x
     } else if x > 0 {

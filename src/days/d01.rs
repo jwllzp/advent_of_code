@@ -1,4 +1,6 @@
 use std::{fs};
+use crate::utils::{floor_n, ceil_n};
+
 #[derive(Debug)]
 enum Direction {
     Left,
@@ -85,12 +87,31 @@ impl Document {
         let mut total_zeros = 0;
         let mut position: i32 = 50;
         let mut new_position: i32;
+        let mut step: i32;
+        let mut high: i32;
+        let mut low: i32;
         for rotation in self.rotations {
-            let step = rotation.steps * match rotation.direction {
+            step = rotation.steps * match rotation.direction {
                 Direction::Left => -1,
                 Direction::Right => 1,
             };
             new_position = position + step;
+            high = floor_n(position.max(new_position), cycle_size);
+            low = ceil_n(position.min(new_position), cycle_size);
+            // println!("-----------------------------");
+            // dbg!(total_zeros);
+            // dbg!(step);
+            // dbg!(position);
+            // dbg!(new_position);
+            // dbg!(low);
+            // dbg!(high);
+            if high < low {
+                position = new_position;
+                // println!("high < low");
+                continue;
+            };
+            // dbg!((high - low) / cycle_size + 1 - (if position == 0 {1} else {0}));
+            total_zeros += (high - low) / cycle_size + 1 - (if position % cycle_size == 0 {1} else {0});
             position = new_position;
         }
         total_zeros
