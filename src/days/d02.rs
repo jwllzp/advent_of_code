@@ -72,7 +72,26 @@ fn is_valid_id_part_1(id: &u64) -> bool {
 }
 
 fn is_valid_id_part_2(id: &u64) -> bool {
-    todo!()
+    let s: String = id.to_string();
+    for chunk_size in 1..=(s.len() / 2) {
+        if s.len() % chunk_size != 0 {
+            continue;
+        }
+
+        let batches: Vec<String> = s
+            .chars()
+            .collect::<Vec<char>>()
+            .chunks(chunk_size)
+            .map(|c| -> String {
+                c.iter().collect::<String>()
+            })
+            .collect(); 
+
+        if batches.windows(2).all(|w| w[0] == w[1]) {
+            return false;
+        }
+    }
+    true
 }
 
 #[cfg(test)]
@@ -96,7 +115,15 @@ mod test {
     #[test]
     fn test_part2_example() {
         let document = Products::new("src/days/inputs/02/p1_example.txt");
-        let answer = document.part_1();
+        let answer = document.part_2();
         assert_eq!(4174379265, answer)
     }
+
+    #[test]
+    fn test_part2() {
+        let document = Products::new("src/days/inputs/02/p1.txt");
+        let answer = document.part_2();
+        assert_eq!(53481866137, answer)
+    }
+
 }
