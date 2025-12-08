@@ -135,6 +135,7 @@ mod d04 {
 
     #[test]
     fn part2() {
-        todo!()
+        let grid = Grid::new("src/days/inputs/04/input.txt");
+        assert_eq!(8616, grid.part_2());
     }
 }
