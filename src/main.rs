@@ -3,6 +3,7 @@ use advent_of_code::days::{
     d02::Products,
     d03::Banks,
     d04::Grid,
+    d05::Database,
 };
 
 fn main() {
@@ -19,4 +20,7 @@ fn main() {
     println!("--------------------");
     println!("Day 4\n\t1: {}", Grid::new("src/days/inputs/04/input.txt").part_1());
     println!("\t2: {}", Grid::new("src/days/inputs/04/input.txt").part_2());
+    println!("--------------------");
+    println!("Day 5\n\t1: {}", Database::new("src/days/inputs/05/input.txt").part_1());
+    println!("\t2: {}", Database::new("src/days/inputs/05/input.txt").part_2());
 }
