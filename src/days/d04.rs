@@ -28,35 +28,32 @@ impl Grid {
             .collect();
 
         let padding: Vec<Vec<usize>> = vec![vec![0; rows[0].len()]];
-        let grid = [
-            padding.as_slice(),
-            rows.as_slice(),
-            padding.as_slice()
-        ].concat();
-        
+        let grid =
+            [padding.as_slice(), rows.as_slice(), padding.as_slice()].concat();
+
         Grid { grid }
     }
 
     pub fn part_1(&self) -> usize {
-        let max_row = self.grid.len()-1;
-        let max_col = self.grid[0].len()-1;
+        let max_row = self.grid.len() - 1;
+        let max_col = self.grid[0].len() - 1;
         let mut count = 0;
         let mut count_adjacent;
 
         for row in 1..max_row {
             for col in 1..max_col {
-                if self.grid[row][col] == 0 { 
+                if self.grid[row][col] == 0 {
                     continue;
                 }
                 count_adjacent = 0;
-                count_adjacent += self.grid[row-1][col-1];
-                count_adjacent += self.grid[row-1][col];
-                count_adjacent += self.grid[row-1][col+1];
-                count_adjacent += self.grid[row][col-1];
-                count_adjacent += self.grid[row][col+1];
-                count_adjacent += self.grid[row+1][col-1];
-                count_adjacent += self.grid[row+1][col];
-                count_adjacent += self.grid[row+1][col+1];
+                count_adjacent += self.grid[row - 1][col - 1];
+                count_adjacent += self.grid[row - 1][col];
+                count_adjacent += self.grid[row - 1][col + 1];
+                count_adjacent += self.grid[row][col - 1];
+                count_adjacent += self.grid[row][col + 1];
+                count_adjacent += self.grid[row + 1][col - 1];
+                count_adjacent += self.grid[row + 1][col];
+                count_adjacent += self.grid[row + 1][col + 1];
 
                 if count_adjacent < 4 {
                     count += 1;
@@ -69,8 +66,8 @@ impl Grid {
 
     pub fn part_2(&self) -> usize {
         let mut grid = self.grid.clone();
-        let max_row = self.grid.len()-1;
-        let max_col = self.grid[0].len()-1;
+        let max_row = self.grid.len() - 1;
+        let max_col = self.grid[0].len() - 1;
         let mut count = 0;
         let mut count_adjacent;
         let mut remove_indeces: Vec<(usize, usize)> = Vec::new();
@@ -78,18 +75,18 @@ impl Grid {
         loop {
             for row in 1..max_row {
                 for col in 1..max_col {
-                    if grid[row][col] == 0 { 
+                    if grid[row][col] == 0 {
                         continue;
                     }
                     count_adjacent = 0;
-                    count_adjacent += grid[row-1][col-1];
-                    count_adjacent += grid[row-1][col];
-                    count_adjacent += grid[row-1][col+1];
-                    count_adjacent += grid[row][col-1];
-                    count_adjacent += grid[row][col+1];
-                    count_adjacent += grid[row+1][col-1];
-                    count_adjacent += grid[row+1][col];
-                    count_adjacent += grid[row+1][col+1];
+                    count_adjacent += grid[row - 1][col - 1];
+                    count_adjacent += grid[row - 1][col];
+                    count_adjacent += grid[row - 1][col + 1];
+                    count_adjacent += grid[row][col - 1];
+                    count_adjacent += grid[row][col + 1];
+                    count_adjacent += grid[row + 1][col - 1];
+                    count_adjacent += grid[row + 1][col];
+                    count_adjacent += grid[row + 1][col + 1];
 
                     if count_adjacent < 4 {
                         count += 1;

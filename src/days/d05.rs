@@ -1,6 +1,6 @@
+use std::collections::VecDeque;
 use std::fs;
 use std::ops::RangeInclusive;
-use std::collections::VecDeque;
 
 #[derive(Debug)]
 pub struct Database {
@@ -10,37 +10,31 @@ pub struct Database {
 
 impl Database {
     pub fn new(path: &str) -> Self {
-        let binding = fs::read_to_string(path)
-            .unwrap();
+        let binding = fs::read_to_string(path).unwrap();
 
-        let (input_ranges, input_ids) = binding
-            .trim()
-            .split_once("\n\n")
-            .unwrap(); 
+        let (input_ranges, input_ids) =
+            binding.trim().split_once("\n\n").unwrap();
 
         let ranges: Vec<RangeInclusive<u64>> = input_ranges
-                .split("\n")
-                .map(|r| {
-                    let (low, high) = r.split_once("-").unwrap();
-                    let start: u64 = low.parse().unwrap();
-                    let end: u64 = high.parse().unwrap();
-                    start..=end
-                })
-                .collect();
+            .split("\n")
+            .map(|r| {
+                let (low, high) = r.split_once("-").unwrap();
+                let start: u64 = low.parse().unwrap();
+                let end: u64 = high.parse().unwrap();
+                start..=end
+            })
+            .collect();
 
         let ids: Vec<u64> = input_ids
             .split("\n")
-            .map(|r| {
-                r.parse::<u64>().unwrap()
-            })
+            .map(|r| r.parse::<u64>().unwrap())
             .collect();
-        
+
         Database { ranges, ids }
     }
 
     pub fn part_1(&self) -> usize {
-        self
-            .ids
+        self.ids
             .iter()
             .filter(|id| self.ranges.iter().any(|r| r.contains(id)))
             .count()
@@ -49,7 +43,7 @@ impl Database {
     pub fn part_2(&self) -> usize {
         let mut ranges = self.sorted_ranges();
         ranges = self.disjoint_ranges(ranges);
-        
+
         ranges.iter().map(|r| r.clone().count()).sum()
     }
 
@@ -60,7 +54,10 @@ impl Database {
         VecDeque::from(ranges)
     }
 
-    fn disjoint_ranges(&self, mut ranges: VecDeque<RangeInclusive<u64>>) -> VecDeque<RangeInclusive<u64>> {
+    fn disjoint_ranges(
+        &self,
+        mut ranges: VecDeque<RangeInclusive<u64>>,
+    ) -> VecDeque<RangeInclusive<u64>> {
         let mut disjoint_ranges = VecDeque::new();
         let mut start: u64;
         let mut end: u64;
@@ -77,14 +74,13 @@ impl Database {
                     ranges.push_front(start..=end);
                     continue 'outer;
                 }
-            } 
+            }
             disjoint_ranges.push_back(current.clone());
         }
 
         disjoint_ranges
     }
 }
-    
 
 #[cfg(test)]
 mod d05 {
@@ -116,38 +112,29 @@ mod d05 {
 
     #[test]
     fn test_sorted_ranges() {
-        let ranges = vec![
-            3..=5,
-            10..=14,
-            16..=20,
-            12..=18,
-        ];
-        let expected = VecDeque::from([
-            3..=5,
-            10..=14,
-            12..=18,
-            16..=20,
-        ]);
+        let ranges = vec![3..=5, 10..=14, 16..=20, 12..=18];
+        let expected = VecDeque::from([3..=5, 10..=14, 12..=18, 16..=20]);
 
-        let database = Database { ranges, ids: Vec::new()};
+        let database = Database {
+            ranges,
+            ids: Vec::new(),
+        };
         assert_eq!(expected, database.sorted_ranges());
     }
-    
+
     #[test]
     fn test_disjoint_ranges() {
-        let ranges = vec![
-            3..=5,
-            10..=14,
-            12..=18,
-            16..=20,
-        ];
+        let ranges = vec![3..=5, 10..=14, 12..=18, 16..=20];
 
-        let expected = VecDeque::from([
-            3..=5,
-            10..=20,
-        ]);
+        let expected = VecDeque::from([3..=5, 10..=20]);
 
-        let database = Database { ranges, ids: Vec::new()};
-        assert_eq!(expected, database.disjoint_ranges(database.sorted_ranges()));
+        let database = Database {
+            ranges,
+            ids: Vec::new(),
+        };
+        assert_eq!(
+            expected,
+            database.disjoint_ranges(database.sorted_ranges())
+        );
     }
 }

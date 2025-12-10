@@ -21,7 +21,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn floor_10(){
+    fn floor_10() {
         assert_eq!(0, floor_n(3, 10));
         assert_eq!(0, floor_n(0, 10));
         assert_eq!(10, floor_n(10, 10));
@@ -29,7 +29,7 @@ mod test {
     }
 
     #[test]
-    fn ceil_10(){
+    fn ceil_10() {
         assert_eq!(10, ceil_n(3, 10));
         assert_eq!(0, ceil_n(0, 10));
         assert_eq!(10, ceil_n(10, 10));

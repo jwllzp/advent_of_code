@@ -6,27 +6,26 @@ pub struct Products {
 
 impl Products {
     pub fn new(path: &str) -> Self {
-        let raw_ranges = fs::read_to_string(path).unwrap_or_else(|_| panic!("File not found :("));
+        let raw_ranges = fs::read_to_string(path)
+            .unwrap_or_else(|_| panic!("File not found :("));
         let ranges: Vec<IdRange> = raw_ranges
             .trim()
             .split(",")
-            .map(|s| {IdRange::new(s)})
+            .map(|s| IdRange::new(s))
             .collect();
-        
+
         Products { ranges }
     }
 
     pub fn part_1(self) -> u64 {
-        self
-            .ranges
+        self.ranges
             .iter()
             .map(|r| r.get_invalid_ids(is_valid_id_part_1).iter().sum::<u64>())
             .sum()
     }
 
     pub fn part_2(self) -> u64 {
-        self
-            .ranges
+        self.ranges
             .iter()
             .map(|r| r.get_invalid_ids(is_valid_id_part_2).iter().sum::<u64>())
             .sum()
@@ -41,8 +40,7 @@ struct IdRange {
 
 impl IdRange {
     fn new(range: &str) -> Self {
-        let (start_unparsed, end_unparsed) = 
-            range
+        let (start_unparsed, end_unparsed) = range
             .split_once("-")
             .expect("range must be in the format xxx-yyy");
 
@@ -65,7 +63,7 @@ impl IdRange {
 fn is_valid_id_part_1(id: &u64) -> bool {
     let s: String = id.to_string();
     if s.len() % 2 != 0 {
-        return true
+        return true;
     }
     let (left, right) = s.split_at(s.len() / 2);
     left != right
@@ -82,10 +80,8 @@ fn is_valid_id_part_2(id: &u64) -> bool {
             .chars()
             .collect::<Vec<char>>()
             .chunks(chunk_size)
-            .map(|c| -> String {
-                c.iter().collect::<String>()
-            })
-            .collect(); 
+            .map(|c| -> String { c.iter().collect::<String>() })
+            .collect();
 
         if batches.windows(2).all(|w| w[0] == w[1]) {
             return false;
@@ -125,5 +121,4 @@ mod test {
         let answer = document.part_2();
         assert_eq!(53481866137, answer)
     }
-
 }

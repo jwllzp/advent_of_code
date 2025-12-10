@@ -1,15 +1,15 @@
-use std::{fs};
+use std::fs;
 
 #[derive(Debug)]
 enum Direction {
     Left,
-    Right
+    Right,
 }
 
 #[derive(Debug)]
 struct Rotation {
     direction: Direction,
-    steps: i32
+    steps: i32,
 }
 
 impl Rotation {
@@ -20,14 +20,15 @@ impl Rotation {
 
 #[derive(Debug)]
 pub struct Document {
-    rotations: Vec<Rotation>
+    rotations: Vec<Rotation>,
 }
 
 impl Document {
     pub fn new(path: &str) -> Self {
         let file = fs::read_to_string(path).unwrap_or_else(|_| {
-            panic!("File not found");});
-        
+            panic!("File not found");
+        });
+
         let rotations: Vec<Rotation> = file
             .trim()
             .split('\n')
@@ -36,7 +37,7 @@ impl Document {
                 let direction = match direction_str {
                     "L" => Direction::Left,
                     "R" => Direction::Right,
-                    _ => panic!("Not a direction char")
+                    _ => panic!("Not a direction char"),
                 };
                 let steps = steps_str.parse::<i32>().unwrap();
                 Rotation::new(direction, steps)
@@ -64,7 +65,7 @@ impl Document {
                         position = 0;
                         total_zeros += 1;
                     }
-                },
+                }
                 Direction::Right => {
                     new_position = position + step;
                     if new_position < cycle_size {
@@ -75,12 +76,12 @@ impl Document {
                         position = 0;
                         total_zeros += 1;
                     }
-                },
+                }
             };
         }
         total_zeros
     }
-    
+
     pub fn part_2(self) -> i32 {
         let cycle_size = 100;
         let mut total_zeros = 0;
@@ -105,7 +106,7 @@ impl Document {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn part_1_example() {
         let document = Document::new("src/days/inputs/01/p1_test.txt");
