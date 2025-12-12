@@ -7,6 +7,11 @@ pub struct Worksheet {
 }
 
 #[derive(Debug)]
+pub struct Worksheet2 {
+    exercises: Vec<(u64, Option<Operation>)>,
+}
+
+#[derive(Debug)]
 enum Operation {
     Add,
     Multiply,
@@ -53,7 +58,7 @@ impl Worksheet {
 
         Worksheet { exercises }
     }
-    // let reduced: i32 = (1..10).reduce(|acc, e| acc + e).unwrap_or(0);
+
     pub fn part_1(&self) -> u64 {
         self.exercises
             .iter()
@@ -68,9 +73,67 @@ impl Worksheet {
             })
             .sum()
     }
+}
 
-    fn part_2(&self) -> u64 {
-        todo!()
+impl Worksheet2 {
+    pub fn new(path: &str) -> Self {
+        let raw_worksheet = fs::read_to_string(path).unwrap();
+
+        let chars: Vec<Vec<char>> = raw_worksheet[0..raw_worksheet.len() - 1]
+            .split("\n")
+            .map(|l| l.chars().collect())
+            .collect();
+
+        let mut chars_transposed: Vec<Vec<char>> = Vec::new();
+        for j in 0..chars[0].len() {
+            let mut row = Vec::new();
+            for i in 0..chars.len() {
+                row.push(chars[i][j]);
+            }
+            chars_transposed.push(row);
+        }
+        chars_transposed.reverse();
+
+        let exercises: Vec<(u64, Option<Operation>)> = chars_transposed
+            .iter()
+            .filter(|l| l.iter().any(|c| *c != ' '))
+            .map(|l| {
+                let number: u64 = l[..l.len() - 1]
+                    .iter()
+                    .collect::<String>()
+                    .trim()
+                    .parse()
+                    .unwrap();
+
+                let operation: Option<Operation> = match l[l.len() - 1] {
+                    '+' => Some(Operation::Add),
+                    '*' => Some(Operation::Multiply),
+                    _ => None,
+                };
+
+                (number, operation)
+            })
+            .collect();
+
+        Worksheet2 { exercises }
+    }
+
+    pub fn solve(&self) -> u64 {
+        let mut total: u64 = 0;
+        let mut buffer: Vec<u64> = Vec::new();
+
+        for (number, operation) in &self.exercises {
+            buffer.push(*number);
+            if let Some(o) = operation {
+                total += match o {
+                    Operation::Add => buffer.iter().sum::<u64>(),
+                    Operation::Multiply => buffer.iter().product::<u64>(),
+                };
+                buffer.clear();
+            }
+        }
+
+        total
     }
 }
 
@@ -88,5 +151,18 @@ mod d06 {
     fn test_part1() {
         let worksheet = Worksheet::new("src/days/inputs/06/input.txt");
         assert_eq!(4693419406682, worksheet.part_1());
+    }
+
+    #[test]
+    fn test_part2_example() {
+        let worksheet = Worksheet2::new("src/days/inputs/06/example.txt");
+        println!("{:?}", &worksheet);
+        assert_eq!(3263827, worksheet.solve());
+    }
+
+    #[test]
+    fn test_part2() {
+        let worksheet = Worksheet2::new("src/days/inputs/06/input.txt");
+        assert_eq!(9029931401920, worksheet.solve());
     }
 }
