@@ -52,8 +52,6 @@ impl TachyonManifold {
         let mut right: usize = 0;
 
         for line in &self.diagram {
-            println!("{:?}", &line);
-            println!("{:?}", &beam_positions);
             next_beam_positions = HashSet::new();
             beam_positions.iter().for_each(|b| {
                 match line[*b] {
@@ -83,42 +81,7 @@ impl TachyonManifold {
     }
 
     pub fn part_2(&self) -> usize {
-        let diagram_range = 0..self.diagram[0].len();
-        let mut splits = 0;
-        let mut beam_positions = self.get_beam_postions();
-        let mut next_beam_positions: HashSet<usize>;
-        let mut left: usize = 0;
-        let mut right: usize = 0;
-
-        for line in &self.diagram {
-            println!("{:?}", &line);
-            println!("{:?}", &beam_positions);
-            next_beam_positions = HashSet::new();
-            beam_positions.iter().for_each(|b| {
-                match line[*b] {
-                    Obstacle::Space => {
-                        next_beam_positions.insert(*b);
-                    }
-                    Obstacle::Splitter => {
-                        splits += 1;
-
-                        left = b - 1;
-                        right = b + 1;
-
-                        if diagram_range.contains(&left) {
-                            next_beam_positions.insert(left);
-                        }
-
-                        if diagram_range.contains(&right) {
-                            next_beam_positions.insert(right);
-                        }
-                    }
-                };
-            });
-            beam_positions = next_beam_positions;
-        }
-
-        beam_positions.len()
+        todo!();
     }
 
     fn get_beam_postions(&self) -> HashSet<usize> {
