@@ -8,6 +8,7 @@ use advent_of_code::days::{
         Worksheet,
         Worksheet2,
     },
+    d07::TachyonManifold,
 };
 
 fn main() {
@@ -66,4 +67,13 @@ fn main() {
         "\t2: {}",
         Worksheet2::new("src/days/inputs/06/input.txt").solve()
     );
+    println!("--------------------");
+    println!(
+        "Day 7\n\t1: {}",
+        TachyonManifold::new("src/days/inputs/07/input.txt").part_1()
+    );
+    // println!(
+    //     "\t3: {}",
+    //     Worksheet2::new("src/days/inputs/06/input.txt").solve()
+    // );
 }
