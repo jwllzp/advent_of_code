@@ -1,5 +1,5 @@
 use std::collections::{
-    HashMap,
+    BTreeMap,
     HashSet,
 };
 use std::fmt;
@@ -13,7 +13,7 @@ pub struct TachyonManifold {
 
 #[derive(Debug)]
 pub struct Graph {
-    nodes: HashMap<usize, Node>,
+    nodes: BTreeMap<usize, Node>,
     initial_node_id: usize,
     terminal_node_ids: Vec<usize>,
 }
@@ -26,15 +26,27 @@ enum Obstacle {
 
 #[derive(Clone, Debug)]
 enum Node {
-    Initial(usize),
+    Initial(InitialNode),
     Splitter(SplitterNode),
-    End(usize),
+    End(TerminalNode),
+}
+
+#[derive(Clone, Debug)]
+struct InitialNode {
+    id: usize,
+    child: usize,
 }
 
 #[derive(Clone, Debug)]
 struct SplitterNode {
     id: usize,
     children: Vec<usize>,
+}
+
+#[derive(Clone, Debug)]
+struct TerminalNode {
+    id: usize,
+    acum_value: usize,
 }
 
 #[derive(Debug)]
@@ -126,22 +138,29 @@ impl fmt::Display for Obstacle {
 impl Graph {
     pub fn new(path: &str) -> Self {
         let raw = fs::read_to_string(path).unwrap();
-        let mut lines = raw.trim().lines();
+        let lines = raw.trim().lines();
         let mut node_id = 0;
-
         let mut diagram: Vec<Vec<Option<Node>>> = lines
             .map(|l| {
                 l.chars()
                     .map(|c| {
                         let node = match c {
-                            'S' => Some(Node::Initial(node_id)),
-                            '^' => Some(Node::Splitter(SplitterNode {
-                                id: node_id,
-                                children: Vec::new(),
-                            })),
+                            'S' => {
+                                node_id += 1;
+                                Some(Node::Initial(InitialNode {
+                                    id: node_id,
+                                    child: 0,
+                                }))
+                            }
+                            '^' => {
+                                node_id += 1;
+                                Some(Node::Splitter(SplitterNode {
+                                    id: node_id,
+                                    children: Vec::new(),
+                                }))
+                            }
                             _ => None,
                         };
-                        node_id += 1;
                         node
                     })
                     .collect()
@@ -150,34 +169,49 @@ impl Graph {
 
         let mut terminal_nodes = Vec::new();
         for _ in 0..diagram.len() {
-            terminal_nodes.push(Some(Node::End(node_id)));
+            terminal_nodes.push(Some(Node::End(TerminalNode {
+                id: node_id,
+                acum_value: 0,
+            })));
             node_id += 1;
         }
         diagram.push(terminal_nodes);
 
-        let mut nodes: HashMap<usize, Node> = HashMap::new();
+        let mut nodes: BTreeMap<usize, Node> = BTreeMap::new();
         let initial_node_id: usize = 0;
         let mut terminal_node_ids: Vec<usize> = Vec::new();
         for (row_idx, row) in diagram.iter().enumerate() {
             for (col_idx, col) in row.iter().enumerate() {
                 if let Some(node) = col {
                     match node {
-                        Node::Initial(id) => {
-                            nodes.insert(*id, node.clone());
+                        Node::Initial(initial_node) => {
+                            let mut initial_node = initial_node.clone();
+                            initial_node.child =
+                                Self::get_initial_node_child_ids(
+                                    &row_idx, &col_idx, &diagram,
+                                );
+                            nodes.insert(
+                                initial_node.id,
+                                Node::Initial(initial_node),
+                            );
                         }
                         Node::Splitter(splitter_node) => {
                             let mut splitter_node = splitter_node.clone();
-                            splitter_node.children = Self::get_child_ids(
-                                &row_idx, &col_idx, &diagram,
-                            );
+                            splitter_node.children =
+                                Self::get_splitter_node_child_ids(
+                                    &row_idx, &col_idx, &diagram,
+                                );
                             nodes.insert(
                                 splitter_node.id,
                                 Node::Splitter(splitter_node),
                             );
                         }
-                        Node::End(id) => {
-                            nodes.insert(*id, node.clone());
-                            terminal_node_ids.push(*id);
+                        Node::End(terminal_node) => {
+                            nodes.insert(
+                                terminal_node.id,
+                                Node::End(terminal_node.clone()),
+                            );
+                            terminal_node_ids.push(terminal_node.id);
                         }
                     }
                 }
@@ -191,25 +225,86 @@ impl Graph {
         }
     }
 
-    fn get_child_ids(
+    fn get_initial_node_child_ids(
+        row_idx: &usize,
+        col_idx: &usize,
+        diagram: &Vec<Vec<Option<Node>>>,
+    ) -> usize {
+        let mut child_id: usize = 0;
+
+        for i in (row_idx + 1)..diagram.len() {
+            if let Some(child) = &diagram[i][*col_idx] {
+                match child {
+                    Node::Initial(_) => {}
+                    Node::Splitter(splitter_node) => {
+                        child_id = splitter_node.id;
+                    }
+                    Node::End(terminal_node) => {
+                        child_id = terminal_node.id;
+                    }
+                }
+                break;
+            }
+        }
+
+        child_id
+    }
+
+    fn get_splitter_node_child_ids(
         row_idx: &usize,
         col_idx: &usize,
         diagram: &Vec<Vec<Option<Node>>>,
     ) -> Vec<usize> {
-        todo!()
+        let mut children: Vec<usize> = Vec::new();
+
+        for i in *row_idx..diagram.len() {
+            if let Some(child) = &diagram[i][col_idx - 1] {
+                match child {
+                    Node::Initial(_) => {}
+                    Node::Splitter(splitter_node) => {
+                        children.push(splitter_node.id);
+                    }
+                    Node::End(terminal_node) => {
+                        children.push(terminal_node.id);
+                    }
+                }
+                break;
+            }
+        }
+
+        for i in *row_idx..diagram.len() {
+            if let Some(child) = &diagram[i][col_idx + 1] {
+                match child {
+                    Node::Initial(_) => {}
+                    Node::Splitter(splitter_node) => {
+                        children.push(splitter_node.id);
+                    }
+                    Node::End(terminal_node) => {
+                        children.push(terminal_node.id);
+                    }
+                }
+                break;
+            }
+        }
+
+        children
     }
 
-    pub fn propagate(&self) -> usize {
-        todo!();
-    }
-}
-
-impl Node {
-    fn new(id: usize, child_ids: Vec<usize>, node_type: NodeType) -> Self {
-        Node {
-            id,
-            child_ids,
-            node_type,
+    pub fn propagate(&self, node: &mut Node) {
+        match node {
+            Node::Initial(initial_node) => {
+                self.propagate(
+                    self.nodes.get_mut(&initial_node.child).unwrap(),
+                );
+            }
+            Node::Splitter(splitter_node) => {
+                splitter_node.children.iter().for_each(|child_id| {
+                    self.propagate(self.nodes.get_mut(child_id).unwrap());
+                });
+            }
+            Node::End(terminal_node) => {
+                terminal_node.acum_value += 1;
+            }
         }
     }
 }
@@ -233,6 +328,11 @@ mod d07 {
     #[test]
     fn test_part2_example() {
         let manifold = Graph::new("src/days/inputs/07/example.txt");
+        for node in manifold.nodes {
+            println!("{:?}", node);
+        }
+        println!("{:?}", manifold.terminal_node_ids);
+        todo!();
         assert_eq!(40, manifold.propagate());
     }
 
