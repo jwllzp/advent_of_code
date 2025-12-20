@@ -14,7 +14,7 @@ pub struct TachyonManifold {
 #[derive(Debug)]
 pub struct Graph {
     nodes: BTreeMap<usize, Node>,
-    initial_node_id: usize,
+    pub initial_node_id: usize,
     terminal_node_ids: Vec<usize>,
 }
 
@@ -25,26 +25,26 @@ enum Obstacle {
 }
 
 #[derive(Clone, Debug)]
-enum Node {
+pub enum Node {
     Initial(InitialNode),
     Splitter(SplitterNode),
     End(TerminalNode),
 }
 
 #[derive(Clone, Debug)]
-struct InitialNode {
+pub struct InitialNode {
     id: usize,
     child: usize,
 }
 
 #[derive(Clone, Debug)]
-struct SplitterNode {
+pub struct SplitterNode {
     id: usize,
     children: Vec<usize>,
 }
 
 #[derive(Clone, Debug)]
-struct TerminalNode {
+pub struct TerminalNode {
     id: usize,
     acum_value: usize,
 }
@@ -149,7 +149,7 @@ impl Graph {
                                 node_id += 1;
                                 Some(Node::Initial(InitialNode {
                                     id: node_id,
-                                    child: 0,
+                                    child: 2,
                                 }))
                             }
                             '^' => {
@@ -168,17 +168,17 @@ impl Graph {
             .collect();
 
         let mut terminal_nodes = Vec::new();
-        for _ in 0..diagram.len() {
+        for _ in 0..diagram[0].len() {
+            node_id += 1;
             terminal_nodes.push(Some(Node::End(TerminalNode {
                 id: node_id,
                 acum_value: 0,
             })));
-            node_id += 1;
         }
         diagram.push(terminal_nodes);
 
         let mut nodes: BTreeMap<usize, Node> = BTreeMap::new();
-        let initial_node_id: usize = 0;
+        let initial_node_id: usize = 1;
         let mut terminal_node_ids: Vec<usize> = Vec::new();
         for (row_idx, row) in diagram.iter().enumerate() {
             for (col_idx, col) in row.iter().enumerate() {
@@ -290,22 +290,32 @@ impl Graph {
         children
     }
 
-    pub fn propagate(&self, node: &mut Node) {
-        match node {
-            Node::Initial(initial_node) => {
-                self.propagate(
-                    self.nodes.get_mut(&initial_node.child).unwrap(),
-                );
+    pub fn propagate(&mut self, node_id: usize) {
+        let children = match self.nodes.get_mut(&node_id).unwrap() {
+            Node::Initial(initial_node) => vec![initial_node.child],
+            Node::Splitter(node) => node.children.clone(),
+            Node::End(terminal) => {
+                terminal.acum_value += 1;
+                return;
             }
-            Node::Splitter(splitter_node) => {
-                splitter_node.children.iter().for_each(|child_id| {
-                    self.propagate(self.nodes.get_mut(child_id).unwrap());
-                });
-            }
-            Node::End(terminal_node) => {
-                terminal_node.acum_value += 1;
-            }
+        };
+
+        for child_id in children {
+            self.propagate(child_id);
         }
+    }
+
+    pub fn part_2(&mut self) -> usize {
+        self.propagate(self.initial_node_id);
+        self.terminal_node_ids
+            .iter()
+            .map(|id| match self.nodes.get(id).expect("id must exist") {
+                Node::Initial(_) | Node::Splitter(_) => {
+                    panic!("must not be terminal node")
+                }
+                Node::End(terminal_node) => terminal_node.acum_value,
+            })
+            .sum()
     }
 }
 
@@ -327,17 +337,14 @@ mod d07 {
 
     #[test]
     fn test_part2_example() {
-        let manifold = Graph::new("src/days/inputs/07/example.txt");
-        for node in manifold.nodes {
-            println!("{:?}", node);
-        }
-        println!("{:?}", manifold.terminal_node_ids);
-        todo!();
-        assert_eq!(40, manifold.propagate());
+        let mut manifold = Graph::new("src/days/inputs/07/example.txt");
+        assert_eq!(40, manifold.part_2());
     }
 
     #[test]
     fn test_part2() {
-        todo!();
+        let mut manifold = Graph::new("src/days/inputs/07/example.txt");
+        manifold.propagate(manifold.initial_node_id);
+        // assert_eq!(40, manifold.part_2());todo!();
     }
 }
