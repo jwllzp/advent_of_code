@@ -35,12 +35,14 @@ pub enum Node {
 pub struct InitialNode {
     id: usize,
     child: usize,
+    acum_value: usize,
 }
 
 #[derive(Clone, Debug)]
 pub struct SplitterNode {
     id: usize,
     children: Vec<usize>,
+    acum_value: usize,
 }
 
 #[derive(Clone, Debug)]
@@ -150,6 +152,7 @@ impl Graph {
                                 Some(Node::Initial(InitialNode {
                                     id: node_id,
                                     child: 2,
+                                    acum_value: 0,
                                 }))
                             }
                             '^' => {
@@ -157,6 +160,7 @@ impl Graph {
                                 Some(Node::Splitter(SplitterNode {
                                     id: node_id,
                                     children: Vec::new(),
+                                    acum_value: 0,
                                 }))
                             }
                             _ => None,
@@ -172,7 +176,7 @@ impl Graph {
             node_id += 1;
             terminal_nodes.push(Some(Node::End(TerminalNode {
                 id: node_id,
-                acum_value: 0,
+                acum_value: 1,
             })));
         }
         diagram.push(terminal_nodes);
@@ -305,7 +309,62 @@ impl Graph {
         }
     }
 
+    pub fn back_propagate(&mut self, node_id: usize) -> usize {
+        let nodes = self.nodes.clone();
+        let node = nodes.get(&node_id).unwrap();
+        match node {
+            Node::End(_) => {}
+            Node::Splitter(splitter_node) => {
+                let acum_value: usize = splitter_node
+                    .children
+                    .iter()
+                    .map(|child_id| {
+                        match self.nodes.get(child_id).unwrap().clone() {
+                            Node::Initial(_) => {
+                                panic!("Initial node cannot be child")
+                            }
+                            Node::Splitter(splitter_node) => {
+                                splitter_node.acum_value
+                            }
+                            Node::End(terminal_node) => {
+                                terminal_node.acum_value
+                            }
+                        }
+                    })
+                    .sum();
+
+                let node = self.nodes.get_mut(&node_id).unwrap();
+                if let Node::Splitter(n) = node {
+                    n.acum_value += acum_value
+                }
+            }
+            Node::Initial(initial_node) => {
+                let child = self.nodes.get(&initial_node.child).unwrap();
+                return if let Node::Splitter(n) = child {
+                    n.acum_value
+                } else {
+                    panic!("child must be a splitter")
+                };
+            }
+        };
+
+        self.back_propagate(node_id - 1)
+    }
+
+    fn get_node_acum_value(&self, node: Node) -> usize {
+        match node {
+            Node::Initial(initial_node) => initial_node.acum_value,
+            Node::Splitter(splitter_node) => splitter_node.acum_value,
+            Node::End(terminal_node) => terminal_node.acum_value,
+        }
+        .clone()
+    }
+
     pub fn part_2(&mut self) -> usize {
+        self.back_propagate(self.nodes.len() - 1)
+    }
+
+    pub fn part_2_v1(&mut self) -> usize {
         self.propagate(self.initial_node_id);
         self.terminal_node_ids
             .iter()
@@ -343,8 +402,7 @@ mod d07 {
 
     #[test]
     fn test_part2() {
-        let mut manifold = Graph::new("src/days/inputs/07/example.txt");
-        manifold.propagate(manifold.initial_node_id);
-        // assert_eq!(40, manifold.part_2());todo!();
+        let mut manifold = Graph::new("src/days/inputs/07/input.txt");
+        assert_eq!(15118009521693, manifold.part_2());
     }
 }
