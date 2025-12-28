@@ -106,6 +106,51 @@ impl<'a> Rig<'a> {
         self.circuits.iter().take(3).map(|c| c.0.len()).product()
     }
 
+    pub fn part_2(&'a mut self) -> i64 {
+        let mut sorted_keys: Vec<(&(usize, usize), &i64)> =
+            self.distances.iter().map(|(key, val)| (key, val)).collect();
+
+        sorted_keys.sort_by(|a, b| a.1.cmp(b.1));
+
+        let mut last_pushed_ids: Option<&&(usize, usize)> = None;
+        for (ids, _) in sorted_keys.iter() {
+            let idx1 = self.id_in_circuit(&ids.0);
+            let idx2 = self.id_in_circuit(&ids.1);
+
+            match (idx1, idx2) {
+                (None, None) => {
+                    let circuit = Circuit(vec![&ids.0, &ids.1]);
+                    self.circuits.push(circuit);
+                }
+                (None, Some(idx)) => self.circuits[idx].push(&ids.0),
+                (Some(idx), None) => self.circuits[idx].push(&ids.1),
+                (Some(r_idx), Some(l_idx)) => {
+                    if r_idx == l_idx {
+                        continue;
+                    }
+                    let mut circuit_1;
+                    let circuit_2;
+                    if r_idx < l_idx {
+                        circuit_2 = self.circuits.remove(l_idx).0;
+                        circuit_1 = self.circuits.remove(r_idx).0;
+                    } else {
+                        circuit_1 = self.circuits.remove(r_idx).0;
+                        circuit_2 = self.circuits.remove(l_idx).0;
+                    }
+                    circuit_1.extend(circuit_2);
+
+                    self.circuits.push(Circuit(circuit_1));
+                }
+            }
+            last_pushed_ids = Some(ids);
+        }
+
+        let id1 = last_pushed_ids.unwrap().0;
+        let id2 = last_pushed_ids.unwrap().1;
+        self.junction_boxes[id1].location.0
+            * self.junction_boxes[id2].location.0
+    }
+
     fn id_in_circuit(&self, id: &usize) -> Option<usize> {
         self.circuits.iter().position(|c| c.0.contains(&id))
     }
@@ -135,20 +180,20 @@ mod d08 {
     }
 
     #[test]
-    fn test_part1() {
+    fn test_part_1() {
         let mut rig = Rig::new("src/days/inputs/08/input.txt");
         assert_eq!(121770, rig.part_1(1000));
     }
-    //
-    // #[test]
-    // fn test_part2_example() {
-    //     let mut manifold = Graph::new("src/days/inputs/07/example.txt");
-    //     assert_eq!(40, manifold.part_2());
-    // }
-    //
-    // #[test]
-    // fn test_part2() {
-    //     let mut manifold = Graph::new("src/days/inputs/07/input.txt");
-    //     assert_eq!(15118009521693, manifold.part_2());
-    // }
+
+    #[test]
+    fn test_part_2_example() {
+        let mut rig = Rig::new("src/days/inputs/08/example.txt");
+        assert_eq!(25272, rig.part_2());
+    }
+
+    #[test]
+    fn test_part2() {
+        let mut rig = Rig::new("src/days/inputs/08/input.txt");
+        assert_eq!(7893123992, rig.part_2());
+    }
 }
