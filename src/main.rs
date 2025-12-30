@@ -13,6 +13,7 @@ use advent_of_code::days::{
         TachyonManifold,
     },
     d08::Rig,
+    d09,
 };
 
 fn main() {
@@ -86,4 +87,10 @@ fn main() {
         Rig::new("src/days/inputs/08/input.txt").part_1(1000)
     );
     println!("\t2: {}", Rig::new("src/days/inputs/08/input.txt").part_2());
+    println!("---------------------------");
+    println!(
+        "Day 9\n\t1: {}",
+        d09::part_1("src/days/inputs/09/input.txt")
+    );
+    // println!("\t2: {}", Rig::new("src/days/inputs/08/input.txt").part_2());
 }
